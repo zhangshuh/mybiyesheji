@@ -443,6 +443,10 @@ def get_json(request, model_name):
         if isinstance(problem, Problem):
             testCases = get_testCases(problem)
             total_score = get_totalScore(testCases)
+        elif isinstance(problem, TiankongProblem):
+            print("here is i")
+            testCases = get_testCases(Problem.objects.get(problem_id=problem.problem_id))
+            total_score = get_totalScore(testCases)
         else:
             testCases = 0
             total_score = 5

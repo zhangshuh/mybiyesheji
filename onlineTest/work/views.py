@@ -937,7 +937,7 @@ def test_run2(request):
         except Exception as e:
             return HttpResponse(json.dumps({'result': 0, 'info': '出现了问题' + e.__str__(), 'score': 0}))  # 创建失败，返回错误信息
     if request.POST['type'] == 'score':  # 当获取结果时
-
+        print("it is test run 2")
         solution = Solution.objects.get(solution_id=request.POST['solution_id'])  # 获取solution
         homework = MyHomework.objects.get(id=request.POST['homework_id'])
         if solution.result in [0, 1, 2, 3]:  # 当题目还在判断中时
@@ -956,11 +956,12 @@ def test_run2(request):
         else:  # 当成功编译时
             result = 2  # 2代表通过全部测试用例
             right_num = wrong_num = 0  # 通过的测试点数量和未通过的测试点数量
-            problem = TiankongProblem.objects.get(pk=request.POST['problem_id'])
+            problem = Problem.objects.get(pk=request.POST['problem_id'])
             cases = get_testCases(problem)
             score = 0
             for info in json.loads(homework.tiankong_problem_info):
                 if info['pk'] == solution.problem_id:
+                    print(info['testcases'])
                     for case in info['testcases']:  # 获取题目的测试分数
                         if json.loads(solution.oi_info)[str(case['desc']) + '.in']['result'] == 4:  # 参照测试点，依次加测试点分数
                             score += int(case['score'])
@@ -968,9 +969,9 @@ def test_run2(request):
                         else:
                             wrong_num += 1
                             result = 1
-            SourceCodeUser.objects.get(solution_id=solution.solution_id).delete()
-            SourceCode.objects.get(solution_id=solution.solution_id).delete()
-            solution.delete()
+            # SourceCodeUser.objects.get(solution_id=solution.solution_id).delete()
+            # SourceCode.objects.get(solution_id=solution.solution_id).delete()
+            # solution.delete()
             return JsonResponse({'status': 1, 'result': result,
                                  'info': {'total_cases': len(cases), 'right_num': right_num,
                                           'wrong_num': wrong_num, 'score': score}})
