@@ -133,6 +133,20 @@ class GaicuoProblemAddForm(forms.Form):
         memory_limit = cd['memory_limit']
         keypoint = cd['keypoint'].split(',')
         if problemid:
+            problem1 = Problem.objects.get(pk=problemid)
+            problem1.title = title
+            problem1.description = description
+            problem1.time_limit = time_limit
+            problem1.memory_limit = memory_limit
+            problem1.input = input
+            problem1.output = output
+            problem1.sample_input = sample_input1
+            problem1.sample_output = sample_output1
+            problem1.sample_input2 = sample_input2
+            problem1.sample_output2 = sample_output2
+            problem1.creater = user
+            problem1.knowledgePoint1.clear()
+            problem1.knowledgePoint1.clear()
             problem = GaicuoProblem.objects.get(pk=problemid)
             problem.title = title
             problem.description = description
@@ -150,6 +164,20 @@ class GaicuoProblemAddForm(forms.Form):
             problem.knowledgePoint1.clear()
         else:
             id=get_problemid()
+            problem1 = Problem(
+                problem_id=id,
+                title=title,
+                description=description,
+                time_limit=time_limit,
+                memory_limit=memory_limit,
+                input=input,
+                output=output,
+                sample_input=sample_input1,
+                sample_output=sample_output1,
+                sample_input2=sample_input2,
+                sample_output2=sample_output2,
+                creater=user
+            )
             problem = GaicuoProblem(
                 problem_id=id,
                 title=title,
@@ -166,13 +194,18 @@ class GaicuoProblemAddForm(forms.Form):
                 creater=user
             )
         problem.save()
+        problem1.save()
         for point in keypoint:
+            problem1.knowledgePoint2.add(KnowledgePoint2.objects.get(pk=point))
             problem.knowledgePoint2.add(KnowledgePoint2.objects.get(pk=point))
         for point in problem.knowledgePoint2.all():
+            problem1.knowledgePoint1.add(point.upperPoint)
             problem.knowledgePoint1.add(point.upperPoint)
         for point in problem.knowledgePoint1.all():
+            problem1.classname.add(point.classname)
             problem.classname.add(point.classname)
         problem.save()
+        problem1.save()
         return problem
 
 class TiankongProblemAddForm(forms.Form):
@@ -223,6 +256,20 @@ class TiankongProblemAddForm(forms.Form):
         memory_limit = cd['memory_limit']
         keypoint = cd['keypoint'].split(',')
         if problemid:
+            problem1 = Problem.objects.get(pk=problemid)
+            problem1.title = title
+            problem1.description = description
+            problem1.time_limit = time_limit
+            problem1.memory_limit = memory_limit
+            problem1.input = input
+            problem1.output = output
+            problem1.sample_input = sample_input1
+            problem1.sample_output = sample_output1
+            problem1.sample_input2 = sample_input2
+            problem1.sample_output2 = sample_output2
+            problem1.creater = user
+            problem1.knowledgePoint1.clear()
+            problem1.knowledgePoint1.clear()
             problem = TiankongProblem.objects.get(pk=problemid)
             problem.title = title
             problem.description = description
@@ -240,6 +287,20 @@ class TiankongProblemAddForm(forms.Form):
             problem.knowledgePoint1.clear()
         else:
             id=get_problemid()
+            problem1 = Problem(
+                problem_id=id,
+                title=title,
+                description=description,
+                time_limit=time_limit,
+                memory_limit=memory_limit,
+                input=input,
+                output=output,
+                sample_input=sample_input1,
+                sample_output=sample_output1,
+                sample_input2=sample_input2,
+                sample_output2=sample_output2,
+                creater=user
+            )
             problem = TiankongProblem(
                 problem_id=id,
                 title=title,
@@ -256,13 +317,18 @@ class TiankongProblemAddForm(forms.Form):
                 creater=user
             )
         problem.save()
+        problem1.save()
         for point in keypoint:
             problem.knowledgePoint2.add(KnowledgePoint2.objects.get(pk=point))
+            problem1.knowledgePoint2.add(KnowledgePoint2.objects.get(pk=point))
         for point in problem.knowledgePoint2.all():
             problem.knowledgePoint1.add(point.upperPoint)
+            problem1.knowledgePoint1.add(point.upperPoint)
         for point in problem.knowledgePoint1.all():
             problem.classname.add(point.classname)
+            problem1.classname.add(point.classname)
         problem.save()
+        problem1.save()
         return problem
 
 class ChoiceAddForm(forms.Form):
