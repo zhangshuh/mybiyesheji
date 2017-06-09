@@ -255,6 +255,7 @@ def show_homework_result(request, id):
     homework = homework_answer.homework
     choice_problems = []
     problems = []
+    tiankong_problems = []
     for info in json.loads(homework.choice_problem_info):  # 载入作业的选择题信息，并进行遍历
         if str(info['id']) in wrong_id:  # 如果答案有错
             choice_problems.append(
@@ -264,12 +265,16 @@ def show_homework_result(request, id):
             choice_problems.append(
                 {'detail': ChoiceProblem.objects.get(pk=info['id']), 'right': True})
     for solution in homework_answer.solution_set.all():  # 遍历homework_answer的所有solution
-        problems.append({'code': SourceCode.objects.get(solution_id=solution.solution_id).source,
+        if str(solution.problem_id) in  homework_answer.homework.tiankong_problem_ids.split(','):
+            tiankong_problems.append({'code': SourceCode.objects.get(solution_id=solution.solution_id).source,
+                         'title': Problem.objects.get(pk=solution.problem_id).title, 'result': solution.result})
+        elif str(solution.problem_id) in  homework_answer.homework.problem_ids.split(','):
+            problems.append({'code': SourceCode.objects.get(solution_id=solution.solution_id).source,
                          'title': Problem.objects.get(pk=solution.problem_id).title, 'result': solution.result})
     return render(request, 'homework_result.html',
                   context={'choice_problems': choice_problems, 'problem_score': homework_answer.problem_score,
                            'choice_problem_score': homework_answer.choice_problem_score,
-                           'score': homework_answer.score, 'problems': problems})
+                           'score': homework_answer.score, 'problems': problems,"tiankong_problems":tiankong_problems,'tiankong_score':homework_answer.tiankong_score})
 
 
 def get_choice_score(homework_answer):
@@ -621,6 +626,30 @@ def get_problem_score(homework_answer, judged_score=0):
                 solution.solution_id, e, e.args.__str__()))
     return score
 
+def get_tiankong_score(homework_answer, judged_score=0):
+    """
+    获取某次作业的分数
+    :param homework_answer: 已提交的作业
+    :return: 作业的编程题部分分数
+    """
+    score = judged_score
+    homework = homework_answer.homework
+    solutions = homework_answer.solution_set
+    tiankong_problem_info = []
+    for info in json.loads(homework.tiankong_problem_info):
+        try:
+            solution = solutions.get(problem_id=info['id'])  # 获取题目
+            for case in info['testcases']:  # 获取题目的测试分数
+                if solution.result == 11:  # 如果题目出现编译错误，直接判断为0分，不再继续判断
+                    break
+                if json.loads(solution.oi_info)[str(case['desc']) + '.in']['result'] == 4:  # 参照测试点，依次加测试点分数
+                    score += int(case['score'])
+        except Exception as e:
+            print("error on get problem score！solution_id: %d ,error : %s args: %s" % (
+                solution.solution_id, e, e.args.__str__()))
+    return score
+
+
 
 @login_required()
 def list_finished_homework(request):
@@ -790,8 +819,10 @@ def judge_homework(homework_answer):
             choice_problem_score = get_choice_score(homework_answer)  # 获取选择题分数
             homework_answer.choice_problem_score = choice_problem_score
             problem_score = get_problem_score(homework_answer)  # 获取编程题分数
+            tiankong_score = get_tiankong_score(homework_answer) # get score of tiankong problem
             homework_answer.problem_score = problem_score
-            homework_answer.score = choice_problem_score + problem_score  # 计算总分
+            homework_answer.tiankong_score = tiankong_score
+            homework_answer.score = choice_problem_score + problem_score + tiankong_score  # 计算总分
             homework_answer.judged = True  # 修改判题标记为已经判过
             homework_answer.save()  # 保存
             break  # 跳出循环

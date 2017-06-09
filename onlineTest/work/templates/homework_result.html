@@ -81,5 +81,16 @@
                 </div>
             </div>
     {% endfor %}
+     <h3>tiankongti_defen：{{ tiankong_score }}</h3>
+    {% for problem in tiankong_problems %}
+         <div class="panel panel-{% if problem.result == 4 %}success{% else %}danger{% endif %}">
+                <div class="panel-heading"><span class="glyphicon glyphicon-{% if problem.result == 4 %}ok{% else %}remove{% endif %}"
+                                                 aria-hidden="true"></span> {{ problem.title }}
+                </div>
+                <div class="panel-body">
+                <p><pre><code>{{ problem.code }}</code></pre></p>
+                </div>
+            </div>
+    {% endfor %}
     <script>hljs.initHighlightingOnLoad();</script>
 {% endblock %}
